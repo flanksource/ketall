@@ -1,16 +1,13 @@
-
 plugins:
   - - "@semantic-release/commit-analyzer"
     - releaseRules:
-        - { type: doc, scope: README, release: patch }
-        - { type: fix, release: patch }
-        - { type: chore, release: patch }
-        - { type: refactor, release: patch }
-        - { type: feat, release: patch }
-        - { type: ci, release: false }
-        - { type: style, release: false }
+        - {release: minor}
       parserOpts:
         noteKeywords:
           - MAJOR RELEASE
   - "@semantic-release/release-notes-generator"
   - - "@semantic-release/github"
+branches: [
+    {name: 'main'},
+    {name: 'master'},
+  ]
