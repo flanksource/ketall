@@ -17,6 +17,8 @@ limitations under the License.
 package ketall
 
 import (
+	"context"
+
 	"github.com/flanksource/ketall/client"
 	"github.com/flanksource/ketall/filter"
 	"github.com/flanksource/ketall/options"
@@ -32,6 +34,9 @@ func KetAll(ketallOptions *options.KetallOptions) []*unstructured.Unstructured {
 	}
 
 	filtered := filter.ApplyFilter(all, ketallOptions.Since)
+	if filtered == nil {
+		return nil
+	}
 
 	items := filtered.(*v1.List).Items
 	var unstructuredItems []*unstructured.Unstructured
@@ -39,8 +44,26 @@ func KetAll(ketallOptions *options.KetallOptions) []*unstructured.Unstructured {
 		unstrucrureItem := item.Object.(*unstructured.Unstructured)
 		unstructuredItems = append(unstructuredItems, unstrucrureItem)
 	}
-	if filtered == nil {
-		return nil
-	}
+
 	return unstructuredItems
+}
+
+func KetOne(ctx context.Context, name, namespace, kind string, ketallOptions *options.KetallOptions) (*unstructured.Unstructured, error) {
+	ketallOptions.Kind = kind
+
+	// Override namespace and fieldselector
+	ketallOptions.Namespace = namespace
+	ketallOptions.FieldSelector = "metadata.name=" + name
+
+	all, err := client.GetAllServerResources(ketallOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	items := all.(*v1.List).Items
+	if len(items) == 0 {
+		return nil, nil
+	}
+
+	return items[0].Object.(*unstructured.Unstructured), nil
 }

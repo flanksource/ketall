@@ -46,7 +46,6 @@ type groupResource struct {
 }
 
 func GetAllServerResources(ketalloptions *options.KetallOptions) (runtime.Object, error) {
-
 	grs, err := groupResources(ketalloptions)
 	if err != nil {
 		return nil, errors.Wrap(err, "fetch available group resources")
@@ -116,6 +115,12 @@ func groupResources(ketalloptions *options.KetallOptions) ([]groupResource, erro
 			// filter to resources that can be listed
 			if !sets.NewString(r.Verbs...).HasAny("list", "get") {
 				continue
+			}
+
+			if ketalloptions.Kind != "" {
+				if r.Kind != ketalloptions.Kind && r.Kind != "Namespace" {
+					continue
+				}
 			}
 
 			grs = append(grs, groupResource{
