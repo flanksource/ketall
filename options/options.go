@@ -31,6 +31,7 @@ type KetallOptions struct {
 	MaxInflight     int64    `json:"maxInflight,omitempty"`
 	Namespace       string   `json:"namespace.omitempty"`
 	Exclusions      []string `json:"exclusions,omitempty"`
+	Kind            string   `json:"kind,omitempty"` // Limits results on a specific kind
 }
 
 func NewDefaultCmdOptions() *KetallOptions {
