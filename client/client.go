@@ -52,7 +52,7 @@ func GetAllServerResources(ketalloptions *options.KetallOptions) (runtime.Object
 	}
 
 	start := time.Now()
-	response, err := fetchResourcesBulk(ketalloptions.Namespace, ketalloptions.Selector, ketalloptions.FieldSelector, ketalloptions.GenericCliFlags, grs...)
+	response, err := fetchResourcesBulk(ketalloptions.Namespace, ketalloptions.Selector, ketalloptions.FieldSelector, ketalloptions.Flags, grs...)
 	klog.V(2).Infof("Initial fetchResourcesBulk done (%s)", duration.HumanDuration(time.Since(start)))
 	if err == nil {
 		return response, nil
@@ -71,7 +71,7 @@ func getExclusions(exclusions []string, selector, fieldSelector string) []string
 }
 
 func groupResources(ketalloptions *options.KetallOptions) ([]groupResource, error) {
-	client, err := ketalloptions.GenericCliFlags.ToDiscoveryClient()
+	client, err := ketalloptions.Flags.ToDiscoveryClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "discovery client")
 	}
@@ -187,7 +187,7 @@ func fetchResourcesIncremental(ctx context.Context, ketalloptions *options.Ketal
 				return // context cancelled
 			}
 			defer sem.Release(1)
-			obj, err := fetchResourcesBulk(ketalloptions.Namespace, ketalloptions.Selector, ketalloptions.FieldSelector, ketalloptions.GenericCliFlags, gr)
+			obj, err := fetchResourcesBulk(ketalloptions.Namespace, ketalloptions.Selector, ketalloptions.FieldSelector, ketalloptions.Flags, gr)
 			if err != nil {
 				klog.Warningf("Cannot fetch: %v", err)
 				return

@@ -18,10 +18,10 @@ package options
 
 import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/client-go/rest"
 )
 
 type KetallOptions struct {
-	GenericCliFlags *genericclioptions.ConfigFlags
 	UseCache        bool     `json:"useCache,omitempty"`
 	AllowIncomplete bool     `json:"allowIncomplete,omitempty"`
 	Scope           string   `json:"scope,omitempty"`
@@ -32,11 +32,30 @@ type KetallOptions struct {
 	Namespace       string   `json:"namespace.omitempty"`
 	Exclusions      []string `json:"exclusions,omitempty"` // Exclude resources by name or kind or shortname
 	Kind            string   `json:"kind,omitempty"`       // Limits results on a specific kind
+
+	Flags *KetAllConfigFlags
+}
+
+// KetAllConfigFlags is a wrapper around genericclioptions.ConfigFlags
+// to support kubeconfig directly without needing the kubeconfig path.
+type KetAllConfigFlags struct {
+	*genericclioptions.ConfigFlags
+	KubeConfig *rest.Config `json:"kubeConfig,omitempty"`
+}
+
+func (t *KetAllConfigFlags) RawConfig() (*rest.Config, error) {
+	if t.KubeConfig != nil {
+		return t.KubeConfig, nil
+	}
+
+	return t.ConfigFlags.ToRESTConfig()
 }
 
 func NewDefaultCmdOptions() *KetallOptions {
 	return &KetallOptions{
-		GenericCliFlags: genericclioptions.NewConfigFlags(true),
+		Flags: &KetAllConfigFlags{
+			ConfigFlags: genericclioptions.NewConfigFlags(true),
+		},
 	}
 }
 
