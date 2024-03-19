@@ -43,7 +43,7 @@ type KetAllConfigFlags struct {
 	KubeConfig *rest.Config `json:"kubeConfig,omitempty"`
 }
 
-func (t *KetAllConfigFlags) RawConfig() (*rest.Config, error) {
+func (t *KetAllConfigFlags) ToRESTConfig() (*rest.Config, error) {
 	if t.KubeConfig != nil {
 		return t.KubeConfig, nil
 	}
