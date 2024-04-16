@@ -45,20 +45,24 @@ type groupResource struct {
 	APIResource metav1.APIResource
 }
 
-func GetAllServerResources(ketalloptions *options.KetallOptions) (runtime.Object, error) {
+func GetAllServerResources(ctx context.Context, ketalloptions *options.KetallOptions) (runtime.Object, error) {
+	klog.V(3).Infof("getting groupResources")
 	grs, err := groupResources(ketalloptions)
 	if err != nil {
 		return nil, errors.Wrap(err, "fetch available group resources")
 	}
+	klog.V(3).Infof("found %d resources", len(grs))
 
 	start := time.Now()
 	response, err := fetchResourcesBulk(ketalloptions.Namespace, ketalloptions.Selector, ketalloptions.FieldSelector, ketalloptions.Flags, grs...)
-	klog.V(2).Infof("Initial fetchResourcesBulk done (%s)", duration.HumanDuration(time.Since(start)))
-	if err == nil {
+	if err != nil {
+		klog.V(1).ErrorS(err, "fetchResourcesBulk returned an error")
+	} else {
 		return response, nil
 	}
 
-	return fetchResourcesIncremental(context.TODO(), ketalloptions, grs...)
+	klog.V(2).Infof("Initial fetchResourcesBulk done (%s)", duration.HumanDuration(time.Since(start)))
+	return fetchResourcesIncremental(ctx, ketalloptions, grs...)
 }
 
 func getExclusions(exclusions []string, selector, fieldSelector string) []string {
@@ -172,6 +176,10 @@ func fetchResourcesIncremental(ctx context.Context, ketalloptions *options.Ketal
 	// TODO(corneliusweig): this needs to properly pass ctx around
 	klog.V(2).Info("Fetch resources incrementally")
 	start := time.Now()
+
+	if ketalloptions.MaxInflight <= 0 {
+		ketalloptions.MaxInflight = options.MaxInFlightDefault
+	}
 
 	sem := semaphore.NewWeighted(ketalloptions.MaxInflight) // restrict parallelism to 64 inflight requests
 

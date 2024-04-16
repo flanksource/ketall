@@ -18,6 +18,7 @@ package ketall
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/flanksource/ketall/client"
 	"github.com/flanksource/ketall/filter"
@@ -27,25 +28,28 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func KetAll(ketallOptions *options.KetallOptions) []*unstructured.Unstructured {
-	all, err := client.GetAllServerResources(ketallOptions)
+func KetAll(ctx context.Context, ketallOptions *options.KetallOptions) ([]*unstructured.Unstructured, error) {
+	all, err := client.GetAllServerResources(ctx, ketallOptions)
 	if err != nil {
-		klog.Fatal(err)
+		return nil, fmt.Errorf("failed to get server resources: %w", err)
 	}
 
 	filtered := filter.ApplyFilter(all, ketallOptions.Since)
 	if filtered == nil {
-		return nil
+		return nil, nil
 	}
 
 	items := filtered.(*v1.List).Items
 	var unstructuredItems []*unstructured.Unstructured
 	for _, item := range items {
-		unstrucrureItem := item.Object.(*unstructured.Unstructured)
-		unstructuredItems = append(unstructuredItems, unstrucrureItem)
+		if unstructuredItem, ok := item.Object.(*unstructured.Unstructured); ok {
+			unstructuredItems = append(unstructuredItems, unstructuredItem)
+		} else {
+			klog.V(1).Infof("item is not type *unstructured.Unstructured. It's of type %T\n", item)
+		}
 	}
 
-	return unstructuredItems
+	return unstructuredItems, nil
 }
 
 func KetOne(ctx context.Context, name, namespace, kind string, ketallOptions *options.KetallOptions) (*unstructured.Unstructured, error) {
@@ -55,7 +59,7 @@ func KetOne(ctx context.Context, name, namespace, kind string, ketallOptions *op
 	ketallOptions.Namespace = namespace
 	ketallOptions.FieldSelector = "metadata.name=" + name
 
-	all, err := client.GetAllServerResources(ketallOptions)
+	all, err := client.GetAllServerResources(ctx, ketallOptions)
 	if err != nil {
 		return nil, err
 	}
