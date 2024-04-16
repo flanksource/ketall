@@ -90,6 +90,9 @@ func (t *KetAllConfigFlags) ToDiscoveryClient() (discovery.CachedDiscoveryInterf
 	return t.ConfigFlags.ToDiscoveryClient()
 }
 
+// Copyright 2018 The Kubernetes Authors.
+// k8s.io/cli-runtime@v0.28.0/pkg/genericclioptions/config_flags.go
+
 // overlyCautiousIllegalFileCharacters matches characters that *might* not be supported.  Windows is really restrictive, so this is really restrictive
 var overlyCautiousIllegalFileCharacters = regexp.MustCompile(`[^(\w/.)]`)
 
