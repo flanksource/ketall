@@ -37,7 +37,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-var errEmpty = errors.New("no resources found")
+var ErrEmpty = errors.New("no resources found")
 
 // groupResource contains the APIGroup and APIResource
 type groupResource struct {
@@ -210,7 +210,7 @@ func fetchResourcesIncremental(ctx context.Context, ketalloptions *options.Ketal
 
 	if len(ret) == 0 {
 		klog.Warningf("No resources found, are you authorized? Try to narrow the scope with --namespace.")
-		return nil, errEmpty
+		return nil, ErrEmpty
 	}
 
 	return util.ToV1List(ret), nil
