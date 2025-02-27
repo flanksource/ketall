@@ -53,6 +53,7 @@ type KetallOptions struct {
 type KetAllConfigFlags struct {
 	*genericclioptions.ConfigFlags
 	KubeConfig *rest.Config `json:"kubeConfig,omitempty"`
+	RestMapper meta.RESTMapper
 }
 
 func (t *KetAllConfigFlags) ToRESTConfig() (*rest.Config, error) {
@@ -64,6 +65,9 @@ func (t *KetAllConfigFlags) ToRESTConfig() (*rest.Config, error) {
 }
 
 func (t *KetAllConfigFlags) ToRESTMapper() (meta.RESTMapper, error) {
+	if t.RestMapper != nil {
+		return t.RestMapper, nil
+	}
 	if t.KubeConfig != nil {
 		discoveryClient, err := t.ToDiscoveryClient()
 		if err != nil {
