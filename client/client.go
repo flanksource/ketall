@@ -111,7 +111,7 @@ func groupResources(ketalloptions *options.KetallOptions) ([]groupResource, erro
 				continue
 			}
 
-			if !((r.Namespaced && scopeNamespace) || (!r.Namespaced && scopeCluster)) {
+			if (r.Namespaced && !scopeNamespace) || (!r.Namespaced && !scopeCluster) {
 				// The resource scope was disabled.
 				continue
 			}
